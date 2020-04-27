@@ -10,9 +10,9 @@ export class ResizableGridDirective implements OnInit {
   startColWidth: number;
   totalColSize: number;
   column: any;
-  nextCol: any;
+  nextCol: any; 
 
-  constructor(private el: ElementRef, public renderer: Renderer2) { }
+  constructor(private el: ElementRef, public renderer: Renderer2) { } 
 
   ngOnInit() {
     this.appendDragSpan(); 
@@ -25,10 +25,18 @@ export class ResizableGridDirective implements OnInit {
        let row = rows[i];
        let cols = row.children;
        for(let j=0; j < cols.length; j++) {
-         let col = cols[j];
+         let col = cols[j];         
          this.renderer.appendChild(col, this.createDragSpan());
+         // this.setInitialSize(col); 
        }
     }
+  }
+
+  setInitialSize(col) {
+    let row = col.parentElement; 
+    const startColWidth = col.offsetWidth;
+    const startColSize =  col.getAttribute('size') || Math.ceil(this.startColWidth/(row.offsetWidth/12));
+    this.renderer.setAttribute(col,'size', startColSize.toString());
   }
 
   createDragSpan() {
@@ -42,14 +50,15 @@ export class ResizableGridDirective implements OnInit {
       //console.log('Drag start');
       this.startNextColSize = 0;      
       this.startX = event.x;    
-      this.startColSize =  parseInt(event.target.parentElement.getAttribute('size')); 
-        //console.log('Column ID ' + column.id);
-      this.startColWidth = event.target.parentElement.offsetWidth;          
       this.column = event.target.parentElement; 
       let row = this.column.parentElement; 
+      this.startColWidth = this.column.offsetWidth;
+      this.startColSize =  parseInt(this.column.getAttribute('size')) || Math.ceil(this.startColWidth/(row.offsetWidth/12));
+       //console.log('Column ID ' + column.id);               
+      
       this.nextCol = this.column.nextSibling;   
       if(this.nextCol) {
-        this.startNextColSize = parseInt(this.nextCol.getAttribute('size'));
+        this.startNextColSize = parseInt(this.nextCol.getAttribute('size')) || Math.ceil(this.nextCol.offsetWidth/(row.offsetWidth/12));
         this.totalColSize = this.startColSize + this.startNextColSize; 
       }          
        
@@ -75,13 +84,13 @@ export class ResizableGridDirective implements OnInit {
                 this.renderer.setAttribute(this.column,'size', currentColSize.toString());
               }
             } else {
-              if (currentColSize > 0 && currentColSize <= 12) {                
+              if (currentColSize > 0 && currentColSize <= this.startColSize) {                
                 this.renderer.setAttribute(this.column,'size', currentColSize.toString());
               }
             }
            }
            }
-           }
+           } 
        
            
            /** $(this.start).parent().css({'min-width': width, 'max-   width': width});
